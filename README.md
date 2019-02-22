@@ -55,7 +55,7 @@ Hints
 
 * The server api has a number of endpoints, most are used to render views, but the query endpoint is a restful endpoint which returns json data
   * Use [postman](https://www.getpostman.com/ "POSTMAN") to test it out - [server]:[port]/query?product_id=[product_id]
-  ![alt text](https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png "Simple GET request")
+  ![postman.png](https://raw.githubusercontent.com/shanenolanwit/fakeyjs/master/public/img/postman.png "Simple GET request")
 
 * This company has implemented a homegrown, two step encryption algorithm for its passwords. The first step is to take an Md5 hash of the password. 
 * Use the passwords.txt file which has been provided, to help you solve the values of the encrypted passwords
