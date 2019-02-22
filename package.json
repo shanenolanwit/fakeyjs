@@ -1,0 +1,22 @@
+{
+  "name": "fakeyjs",
+  "version": "1.0.0",
+  "description": "Vulnerable Node Application",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.js",
+    "fake": "nodemon server-fake.js"
+  },
+  "author": "Shane Nolan",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "express": "^4.16.3",
+    "hbs": "^4.0.2",
+    "mysql": "^2.16.0"
+  },
+  "devDependencies": {
+    "nodemon": "^1.18.10"
+  }
+}
