@@ -85,10 +85,16 @@ app.post('/delete',(req, res) => {
 app.get('/query',(req, res) => {
   let sql = "SELECT * FROM product WHERE id="+req.query.product_id+"";
   let query = conn.query(sql, (err, results) => {
-    if(err) throw err;
-    res.json({
-      data: results
-    })
+    if(err){
+      res.json({
+        error: err
+      })
+    }else {
+      res.json({
+        data: results
+      })
+    }
+    
   });
 });
 
