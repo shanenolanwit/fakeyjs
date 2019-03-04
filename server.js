@@ -1,9 +1,11 @@
 const path = require('path');
 const express = require('express');
+const jwt = require('jsonwebtoken');
 const handlebars = require('hbs');
 const bodyParser = require('body-parser');
 const mysql = require('mysql');
 const app = express();
+var crypto = require('crypto');
 
 var env = process.env.NODE_ENV || 'development';
 var config = require('./config')[env];
@@ -37,8 +39,8 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 //home page
 app.get('/',(req, res) => {
-  res.render('home',{
-    data: []
+  res.render('login',{
+    data: ""
   });
 });
 
@@ -81,22 +83,90 @@ app.post('/delete',(req, res) => {
   });
 });
 
-//query data
-app.get('/query',(req, res) => {
-  let sql = "SELECT * FROM product WHERE id="+req.query.product_id+"";
+/** verifyToken method - this method verifies token */
+function verifyToken(req, res, next){
+    
+  //Request header with authorization key
+  const bearerHeader = req.headers['authorization'];
+  
+  //Check if there is  a header
+  if(typeof bearerHeader !== 'undefined'){
+      const bearer = bearerHeader.split(' ');
+      
+      //Get Token arrray by spliting
+      const bearerToken = bearer[1];
+      req.token = bearerToken;
+      //call next middleware
+      next();
+  }else{
+    res.json({
+      status: 'Forbidden',
+      message: 'Missing Authorization header'
+    })
+  }
+}
+
+/** API query protected route */
+app.post('/api/query', verifyToken, (req, res) => {
+  jwt.verify(req.token, 'SuperSecRetKey', (err, authData)=>{
+      if(err){
+          res.sendStatus(403);
+      }else{
+        let sql = "SELECT * FROM product WHERE id="+req.query.product_id+"";
+        console.log("*** START AUDIT LOG ***");
+        console.log(authData.user.username + " executed sql query : " + sql);
+        console.log("*** END AUDIT LOG ***");
+        let query = conn.query(sql, (err, results) => {
+          if(err){
+            res.json({
+              error: err
+            })
+          }else {
+            res.json({
+              data: results
+            })
+          }          
+        });
+      }
+  });
+});
+
+//Create a token and return to user
+app.post('/home', (req, res) => {
+  var username = req.body.username;
+  var password = req.body.password
+  var hash = crypto.createHash('md5').update(password).digest("hex").toString();
+  var storedhash = Buffer.from(hash).toString('base64');
+  var sql = 'SELECT COUNT(*) AS validUsers FROM exfsark WHERE username = "' + username + '" AND password = "' + storedhash + '"';
   let query = conn.query(sql, (err, results) => {
     if(err){
       res.json({
         error: err
       })
     }else {
-      res.json({
-        data: results
-      })
+      if(results[0].validUsers === 1){
+        const user = {
+          username: username
+        }
+        jwt.sign({user},'SuperSecRetKey', { expiresIn: 600 }, (err, token) => {
+          res.render('home',{
+            username: username,
+            token: token
+          });
+        });
+       
+      } else {
+        res.render('login',{
+          data: "Invalid login"
+        });
+      }
+      
     }
     
   });
+  
 });
+
 
 //server listening
 app.listen(config.server.port, () => {
